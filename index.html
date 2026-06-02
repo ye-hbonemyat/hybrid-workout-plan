@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Hybrid Training Tracker</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#222222">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Hybrid Plan">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        .progress {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #222;
+            color: white;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Hybrid Plan</h1>
+
+    <div class="progress">
+            Weekly Progress:
+            <span id="count">0/7</span>
+    </div>
+
+    <div class="card">
+        <label>Monday - Chest Priority
+            <input type="checkbox" class="workout" data-id="mon">
+        </label>
+    </div>
+
+    <div class="card">
+        <label>Tuesday - Easy Run
+            <input type="checkbox" class="workout" data-id="tue">
+        </label>
+    </div>
+
+    <div class="card">
+        <label>Wednesday - Lower + Core
+            <input type="checkbox" class="workout" data-id="wed">
+        </label>
+    </div>
+
+    <div class="card">
+        <label>Thursday - Tempo/Interval Run
+            <input type="checkbox" class="workout" data-id="thu">
+        </label>
+    </div>
+
+    <div class="card">
+        <label>Friday - Back / Lat Priority
+            <input type="checkbox" class="workout" data-id="fri">
+        </label>
+    </div>
+
+    <div class="card">
+        <label>Saturday - Chest + V-Taper
+            <input type="checkbox" class="workout" data-id="sat">
+        </label>
+    </div>
+
+    <div class="card">
+        <label>Sunday - Long Run
+            <input type="checkbox" class="workout" data-id="sun">
+        </label>
+    </div>
+
+    <button onclick="resetWeek()">Reset Week</button>
+
+    <script>
+        const workouts = document.querySelectorAll('.workout');
+
+        function getWeekKey() {
+            const d = new Date();
+            const firstDay = new Date(d.getFullYear(), 0, 1);
+            const week = Math.ceil((((d - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
+            return `${d.getFullYear()}-W${week}`;
+        }
+
+        function autoReset() {
+            const currentWeek = getWeekKey();
+            const savedWeek = localStorage.getItem('week');
+
+            if (savedWeek !== currentWeek) {
+                localStorage.clear();
+                localStorage.setItem('week', currentWeek);
+            }
+        }
+
+        function updateProgress() {
+            let completed = 0;
+
+            workouts.forEach(box => {
+                if (box.checked) completed++;
+            });
+
+            document.getElementById('count').textContent =
+                `${completed}/7`;
+        }
+
+        autoReset();
+
+        workouts.forEach(box => {
+
+            const saved =
+                localStorage.getItem(box.dataset.id);
+
+            box.checked = saved === 'true';
+
+            box.addEventListener('change', () => {
+
+                localStorage.setItem(
+                    box.dataset.id,
+                    box.checked
+                );
+
+                updateProgress();
+            });
+        });
+
+        updateProgress();
+
+        function resetWeek() {
+            localStorage.clear();
+            location.reload();
+        }
+    </script>
+
+</body>
+
+</html>
