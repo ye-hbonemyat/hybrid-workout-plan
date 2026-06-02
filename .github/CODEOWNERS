@@ -1,0 +1,6 @@
+# Code owners for this repository.
+# Lines later in the file take precedence over earlier lines for the same path.
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Sole owner: every file in the repo.
+* @ye-hbonemyat
