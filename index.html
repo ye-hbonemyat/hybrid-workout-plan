@@ -474,22 +474,24 @@
         .modal a.btn { display: block; text-align: center; text-decoration: none; }
 
         .sets {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
         }
+        .sets.is-run { grid-template-columns: 1fr; }
 
         .set-row {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
+            gap: 8px;
+            padding: 7px 8px 7px 10px;
             border-radius: 10px;
             border: 1px solid var(--border);
             background: var(--surface-2);
             color: var(--text);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
+            min-width: 0;
             transition: background .15s, border-color .15s;
         }
         .set-row.done {
@@ -498,8 +500,8 @@
             color: var(--on-accent);
         }
         .set-row .set-label {
-            min-width: 56px;
-            font-size: 13px;
+            flex-shrink: 0;
+            font-size: 12px;
         }
         .set-row .weight {
             background: transparent;
@@ -508,8 +510,10 @@
             color: inherit;
             font: inherit;
             font-size: 14px;
-            width: 64px;
-            text-align: right;
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+            text-align: center;
             padding: 2px 4px;
             outline: none;
             opacity: .9;
@@ -523,17 +527,11 @@
         }
         .set-row .weight::placeholder { color: currentColor; opacity: .45; }
         .set-row .weight:focus { border-bottom-style: solid; opacity: 1; }
-        .set-row .unit {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: .7;
-            min-width: 18px;
-        }
+        .set-row .unit { display: none; }
         .set-row .toggle {
             margin-left: auto;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 1px solid var(--border);
             background: var(--surface);
@@ -543,10 +541,11 @@
             align-items: center;
             justify-content: center;
             padding: 0;
+            flex-shrink: 0;
             transition: transform .08s, background .15s, color .15s, border-color .15s;
         }
         .set-row .toggle:active { transform: scale(.92); }
-        .set-row .toggle svg { width: 16px; height: 16px; }
+        .set-row .toggle svg { width: 14px; height: 14px; }
         .set-row.done .toggle {
             background: #ffffff;
             border-color: #ffffff;
@@ -555,6 +554,24 @@
         [data-theme="light"] .set-row.done .toggle {
             background: var(--bg);
             border-color: var(--bg);
+        }
+
+        /* Run-day single full-width row */
+        .sets.is-run .set-row {
+            justify-content: space-between;
+            padding: 14px 16px;
+            font-size: 15px;
+        }
+        .sets.is-run .set-row .set-label { font-size: 14px; }
+        .sets.is-run .set-row .toggle {
+            width: 36px;
+            height: 36px;
+        }
+        .sets.is-run .set-row .toggle svg { width: 16px; height: 16px; }
+
+        /* On very narrow phones, fall back to a single column for lifts too. */
+        @media (max-width: 340px) {
+            .sets { grid-template-columns: 1fr; }
         }
 
         .unit-chip {
@@ -1024,11 +1041,14 @@
                                     </div>
                                     <div class="ex-target">${ex.sets}×${ex.reps}${ex.rest ? ` · ${ex.rest}s rest` : ''}</div>
                                 </div>
-                                <div class="sets">
+                                <div class="sets ${day.type === 'run' ? 'is-run' : ''}">
                                     ${Array.from({ length: ex.sets }).map((_, s) => {
                                         const done = isSetDone(day.id, i, s);
                                         const w = getWeight(day.id, i, s);
                                         const showWeight = day.type !== 'run';
+                                        const labelText = day.type === 'run'
+                                            ? 'Mark complete'
+                                            : (ex.sets === 1 ? 'Done' : `S${s + 1}`);
                                         return `
                                         <div class="set-row ${done ? 'done' : ''}"
                                              data-day="${day.id}"
@@ -1036,14 +1056,13 @@
                                              data-set="${s}"
                                              data-rest="${ex.rest}"
                                              data-name="${ex.name.replace(/"/g, '&quot;')}">
-                                            <span class="set-label">${ex.sets === 1 ? 'Done' : `Set ${s + 1}`}</span>
+                                            <span class="set-label">${labelText}</span>
                                             ${showWeight ? `
                                                 <input class="weight" type="number"
                                                        inputmode="decimal" step="0.5" min="0"
                                                        placeholder="—"
                                                        value="${w}"
                                                        aria-label="Weight in ${currentUnit()}">
-                                                <span class="unit">${currentUnit()}</span>
                                             ` : ''}
                                             <button class="toggle" type="button" aria-label="${done ? 'Mark not done' : 'Mark done'}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
