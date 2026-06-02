@@ -327,12 +327,119 @@
         .ex-head {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
+            align-items: center;
             gap: 8px;
             margin-bottom: 8px;
         }
-        .ex-name { font-weight: 600; font-size: 15px; }
+        .ex-name {
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .ex-name span { overflow: hidden; text-overflow: ellipsis; }
         .ex-target { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
+
+        .ex-play {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 0;
+            transition: background .15s, color .15s, transform .08s;
+        }
+        .ex-play:active { transform: scale(.92); }
+        .ex-play:hover { color: var(--text); background: var(--surface); }
+        .ex-play svg { width: 11px; height: 11px; }
+
+        /* Tutorial modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            z-index: 20;
+            padding: 16px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.is-open { display: flex; }
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .65);
+            backdrop-filter: blur(2px);
+        }
+        .modal-card {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            max-width: 720px;
+            width: 100%;
+            padding: 14px;
+            box-shadow: var(--shadow);
+            max-height: calc(100vh - 32px);
+            overflow: auto;
+        }
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .modal-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+        .modal-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .video-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .video-wrap iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .video-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 13px;
+            padding: 16px;
+            line-height: 1.5;
+        }
+
+        .modal a.btn { display: block; text-align: center; text-decoration: none; }
 
         .sets {
             display: flex;
@@ -511,6 +618,24 @@
     <div class="actions">
         <button class="btn" id="goto-today">Today</button>
         <button class="btn danger" onclick="resetWeek()">Reset Week</button>
+    </div>
+
+    <div class="modal" id="video-modal" role="dialog" aria-modal="true" aria-labelledby="video-title">
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+            <div class="modal-head">
+                <h2 id="video-title">Tutorial</h2>
+                <button class="modal-close" type="button" data-close aria-label="Close">×</button>
+            </div>
+            <div class="video-wrap" id="video-wrap">
+                <iframe id="video-frame"
+                        title="Exercise tutorial"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen></iframe>
+            </div>
+            <a id="video-fallback" class="btn primary" target="_blank" rel="noopener noreferrer">Search on YouTube</a>
+        </div>
     </div>
 
     <div class="timer" id="timer" role="status" aria-live="polite">
@@ -759,7 +884,18 @@
                         ${day.exercises.map((ex, i) => `
                             <div class="ex">
                                 <div class="ex-head">
-                                    <div class="ex-name">${ex.name}</div>
+                                    <div class="ex-name">
+                                        <span>${ex.name}</span>
+                                        <button class="ex-play" type="button"
+                                                data-name="${ex.name.replace(/"/g, '&quot;')}"
+                                                data-video="${ex.videoId || ''}"
+                                                aria-label="Watch ${ex.name} tutorial"
+                                                title="Watch tutorial">
+                                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <polygon points="6,4 20,12 6,20"></polygon>
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <div class="ex-target">${ex.sets}×${ex.reps}${ex.rest ? ` · ${ex.rest}s rest` : ''}</div>
                                 </div>
                                 <div class="sets">
@@ -810,6 +946,13 @@
         });
 
         dayViewEl.addEventListener('click', e => {
+            const playBtn = e.target.closest('.ex-play');
+            if (playBtn) {
+                e.stopPropagation();
+                openTutorial(playBtn.dataset.name, playBtn.dataset.video);
+                return;
+            }
+
             const setBtn = e.target.closest('.set-btn');
             if (!setBtn) return;
             const { day, ex, set, rest, name } = setBtn.dataset;
@@ -855,6 +998,7 @@
         document.addEventListener('keydown', e => {
             if (e.target.matches('input, textarea, button')) return;
             if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            if (modalEl.classList.contains('is-open')) return;
             const idx = PLAN.findIndex(d => d.id === currentDayId);
             const next = Math.max(0, Math.min(PLAN.length - 1, e.key === 'ArrowRight' ? idx + 1 : idx - 1));
             if (next !== idx) setDay(PLAN[next].id);
@@ -870,6 +1014,46 @@
             location.reload();
         }
         window.resetWeek = resetWeek;
+
+        // --- Tutorial modal ----------------------------------------------------
+        // If videoId is set on an exercise, embed it directly via youtube-nocookie.
+        // Otherwise hide the iframe and show a "Search on YouTube" link that opens
+        // a search results page in a new tab.
+        const modalEl = document.getElementById('video-modal');
+        const videoFrame = document.getElementById('video-frame');
+        const videoWrap = document.getElementById('video-wrap');
+        const videoTitle = document.getElementById('video-title');
+        const videoFallback = document.getElementById('video-fallback');
+
+        function openTutorial(name, videoId) {
+            videoTitle.textContent = name;
+            const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' form tutorial')}`;
+            videoFallback.href = searchUrl;
+
+            if (videoId) {
+                videoFrame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?rel=0&modestbranding=1`;
+                videoWrap.style.display = '';
+                videoFallback.textContent = 'Open on YouTube';
+                videoFallback.href = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+            } else {
+                videoFrame.removeAttribute('src');
+                videoWrap.style.display = 'none';
+                videoFallback.textContent = 'Search on YouTube';
+            }
+            modalEl.classList.add('is-open');
+        }
+
+        function closeTutorial() {
+            videoFrame.removeAttribute('src'); // stop playback
+            modalEl.classList.remove('is-open');
+        }
+
+        modalEl.addEventListener('click', e => {
+            if (e.target.closest('[data-close]')) closeTutorial();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && modalEl.classList.contains('is-open')) closeTutorial();
+        });
 
         // --- Rest timer --------------------------------------------------------
         const timerEl = document.getElementById('timer');
