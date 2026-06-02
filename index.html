@@ -329,12 +329,25 @@
             border-top: 1px solid var(--border);
         }
 
+        /* Day swipe / drag */
         .day {
-            animation: dayFade .18s ease;
+            touch-action: pan-y;
+            will-change: transform, opacity;
+            transform-origin: center 60%;
         }
-        @keyframes dayFade {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+        .day.is-entering-from-right {
+            animation: enterFromRight .26s cubic-bezier(.22, .61, .36, 1);
+        }
+        .day.is-entering-from-left {
+            animation: enterFromLeft .26s cubic-bezier(.22, .61, .36, 1);
+        }
+        @keyframes enterFromRight {
+            from { transform: translateX(110%) rotate(6deg); opacity: 0; }
+            to   { transform: translateX(0)    rotate(0);    opacity: 1; }
+        }
+        @keyframes enterFromLeft {
+            from { transform: translateX(-110%) rotate(-6deg); opacity: 0; }
+            to   { transform: translateX(0)     rotate(0);     opacity: 1; }
         }
 
         .ex {
@@ -937,6 +950,12 @@
                     </div>
                 </section>
             `;
+
+            if (pendingEnter) {
+                const card = dayViewEl.querySelector('.day');
+                if (card) card.classList.add(`is-entering-from-${pendingEnter}`);
+                pendingEnter = null;
+            }
         }
 
         function setDay(id) {
@@ -993,26 +1012,132 @@
             if (nowDone && +rest > 0) startTimer(+rest, name, +set + 1);
         });
 
-        // Swipe to switch days. Only horizontal-dominant swipes count.
-        let touchStart = null;
-        dayViewEl.addEventListener('touchstart', e => {
-            if (e.touches.length !== 1) { touchStart = null; return; }
-            const t = e.touches[0];
-            touchStart = { x: t.clientX, y: t.clientY, t: Date.now() };
-        }, { passive: true });
-        dayViewEl.addEventListener('touchend', e => {
-            if (!touchStart) return;
-            const t = e.changedTouches[0];
-            const dx = t.clientX - touchStart.x;
-            const dy = t.clientY - touchStart.y;
-            const dt = Date.now() - touchStart.t;
-            touchStart = null;
-            if (dt > 600) return;
-            if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+        // --- Tinder-style drag-to-switch ---------------------------------------
+        // Drag follows the finger 1:1, with a slight rotation tied to distance.
+        // Release past the threshold flies the card off-screen and slides the
+        // next/prev card in; release short-of snaps back to center.
+        const SWIPE_THRESHOLD = 80;        // px before commit
+        const VELOCITY_THRESHOLD = 0.5;    // px/ms; flick commits even if short
+        const FLY_OUT_MS = 220;
+        let drag = null;
+        let isAnimating = false;
+        let pendingEnter = null; // 'left' | 'right' | null
+
+        function activeCard() { return dayViewEl.querySelector('.day'); }
+
+        function resetCard(card) {
+            card.style.transition = '';
+            card.style.transform = '';
+            card.style.opacity = '';
+        }
+
+        function snapBack(card) {
+            card.style.transition = 'transform .22s ease, opacity .22s ease';
+            card.style.transform = '';
+            card.style.opacity = '';
+            setTimeout(() => { if (card) card.style.transition = ''; }, 240);
+        }
+
+        function commitSwipe(direction) {
+            // direction +1 = next day (card flies left), -1 = prev (card flies right)
+            const card = activeCard();
+            if (!card) return;
             const idx = PLAN.findIndex(d => d.id === currentDayId);
-            const next = Math.max(0, Math.min(PLAN.length - 1, dx < 0 ? idx + 1 : idx - 1));
-            if (next !== idx) setDay(PLAN[next].id);
-        });
+            const nextIdx = idx + direction;
+            if (nextIdx < 0 || nextIdx >= PLAN.length) {
+                snapBack(card);
+                return;
+            }
+            isAnimating = true;
+            const offscreen = direction === 1 ? -110 : 110;
+            const rotate = direction === 1 ? -8 : 8;
+            card.style.transition = `transform ${FLY_OUT_MS}ms cubic-bezier(.4,.0,.2,1), opacity ${FLY_OUT_MS}ms ease`;
+            card.style.transform = `translateX(${offscreen}vw) rotate(${rotate}deg)`;
+            card.style.opacity = '0';
+            setTimeout(() => {
+                pendingEnter = direction === 1 ? 'right' : 'left';
+                setDay(PLAN[nextIdx].id);
+                isAnimating = false;
+            }, FLY_OUT_MS);
+        }
+
+        dayViewEl.addEventListener('touchstart', e => {
+            if (isAnimating) { drag = null; return; }
+            if (e.touches.length !== 1) { drag = null; return; }
+            // Don't start a drag from interactive controls — they have their
+            // own behavior (set buttons, play buttons, links).
+            if (e.target.closest('.set-btn, .ex-play, a, button')) {
+                drag = null;
+                return;
+            }
+            const t = e.touches[0];
+            drag = {
+                startX: t.clientX, startY: t.clientY,
+                lastX: t.clientX, lastT: Date.now(),
+                deltaX: 0, deltaY: 0,
+                axis: null  // 'h' | 'v' once decided
+            };
+        }, { passive: true });
+
+        dayViewEl.addEventListener('touchmove', e => {
+            if (!drag) return;
+            const t = e.touches[0];
+            drag.deltaX = t.clientX - drag.startX;
+            drag.deltaY = t.clientY - drag.startY;
+            drag.lastX = t.clientX;
+            drag.lastT = Date.now();
+
+            if (!drag.axis) {
+                if (Math.abs(drag.deltaX) > 6 || Math.abs(drag.deltaY) > 6) {
+                    drag.axis = Math.abs(drag.deltaX) > Math.abs(drag.deltaY) ? 'h' : 'v';
+                }
+            }
+            if (drag.axis !== 'h') return;
+
+            // We're now committed to a horizontal drag — stop the page from
+            // also scrolling vertically.
+            e.preventDefault();
+
+            const card = activeCard();
+            if (!card) return;
+            const dx = drag.deltaX;
+            const idx = PLAN.findIndex(d => d.id === currentDayId);
+            // Add resistance at the edges so it feels like a rubber band.
+            let visualDx = dx;
+            if ((idx === 0 && dx > 0) || (idx === PLAN.length - 1 && dx < 0)) {
+                visualDx = dx * 0.35;
+            }
+            const rotate = Math.max(-10, Math.min(10, visualDx / 18));
+            const opacity = Math.max(0.55, 1 - Math.abs(visualDx) / (window.innerWidth * 0.9));
+            card.style.transition = 'none';
+            card.style.transform = `translateX(${visualDx}px) rotate(${rotate}deg)`;
+            card.style.opacity = String(opacity);
+        }, { passive: false });
+
+        function endDrag(cancelled) {
+            if (!drag) return;
+            const dx = drag.deltaX;
+            const dt = Math.max(1, Date.now() - drag.lastT) + 1;
+            const vx = dx / Math.max(60, Date.now() - (drag.lastT - 60)); // rough velocity
+            const card = activeCard();
+            const wasHoriz = drag.axis === 'h';
+            drag = null;
+            if (!card || !wasHoriz || cancelled) {
+                if (card) resetCard(card);
+                return;
+            }
+            const flick = Math.abs(vx) > VELOCITY_THRESHOLD;
+            if (dx <= -SWIPE_THRESHOLD || (flick && dx < 0)) {
+                commitSwipe(1);  // next
+            } else if (dx >= SWIPE_THRESHOLD || (flick && dx > 0)) {
+                commitSwipe(-1); // previous
+            } else {
+                snapBack(card);
+            }
+        }
+
+        dayViewEl.addEventListener('touchend', () => endDrag(false));
+        dayViewEl.addEventListener('touchcancel', () => endDrag(true));
 
         // Keyboard arrows on desktop
         document.addEventListener('keydown', e => {
