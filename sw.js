@@ -1,6 +1,6 @@
 // Hybrid Training Tracker — service worker
 // Bump CACHE_NAME whenever you ship code changes you want clients to pick up.
-const CACHE_NAME = 'hybrid-plan-v3';
+const CACHE_NAME = 'hybrid-plan-v4';
 const APP_SHELL = [
   './',
   './index.html',

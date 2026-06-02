@@ -82,12 +82,70 @@
         }
 
         header {
+            padding: 12px 0 8px;
+        }
+
+        .day-tabs {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
             position: sticky;
             top: 0;
-            background: linear-gradient(180deg, var(--bg) 80%, transparent);
-            padding: 12px 0 8px;
             z-index: 5;
+            padding: 8px 0;
+            margin: 0 -16px 12px;
+            padding-left: 16px;
+            padding-right: 16px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
         }
+
+        .day-tab {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: 10px;
+            padding: 8px 0 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.2;
+            position: relative;
+            transition: background .15s, border-color .15s, color .15s, transform .08s;
+        }
+        .day-tab:active { transform: scale(.96); }
+        .day-tab .abbr { display: block; font-size: 12px; }
+        .day-tab .pct {
+            display: block;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .day-tab.is-today::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-2);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--accent-2);
+        }
+        .day-tab.is-done {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--on-accent);
+        }
+        .day-tab.is-done .pct { color: var(--on-accent); opacity: .85; }
+        .day-tab.is-active {
+            border-color: var(--accent-2);
+            box-shadow: 0 0 0 1px var(--accent-2);
+            color: var(--text);
+        }
+        .day-tab.is-active.is-done { color: var(--on-accent); }
 
         h1 {
             margin: 0;
@@ -223,8 +281,6 @@
             align-items: center;
             justify-content: space-between;
             padding: 14px 16px;
-            cursor: pointer;
-            user-select: none;
             gap: 12px;
         }
 
@@ -249,18 +305,18 @@
             border-radius: 99px;
             white-space: nowrap;
         }
-        .day-header .chev {
-            transition: transform .2s;
-            color: var(--text-dim);
-        }
-        .day.is-open .day-header .chev { transform: rotate(180deg); }
-
         .day-body {
-            display: none;
             padding: 0 16px 16px;
             border-top: 1px solid var(--border);
         }
-        .day.is-open .day-body { display: block; }
+
+        .day {
+            animation: dayFade .18s ease;
+        }
+        @keyframes dayFade {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .ex {
             padding: 12px 0;
@@ -448,10 +504,12 @@
         </div>
     </header>
 
-    <main id="days"></main>
+    <nav class="day-tabs" id="day-tabs" aria-label="Days of week"></nav>
+
+    <main id="day-view"></main>
 
     <div class="actions">
-        <button class="btn" id="expand-today">Open Today</button>
+        <button class="btn" id="goto-today">Today</button>
         <button class="btn danger" onclick="resetWeek()">Reset Week</button>
     </div>
 
@@ -640,36 +698,62 @@
         }
 
         // --- Render ------------------------------------------------------------
-        const daysEl = document.getElementById('days');
+        const tabsEl = document.getElementById('day-tabs');
+        const dayViewEl = document.getElementById('day-view');
         const todayId = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
 
-        function render() {
-            daysEl.innerHTML = '';
-            PLAN.forEach(day => {
-                const done = isDayDone(day);
+        let currentDayId = (() => {
+            const saved = localStorage.getItem('view');
+            return PLAN.some(d => d.id === saved) ? saved : todayId;
+        })();
+
+        function dayCounts(day) {
+            const total = day.exercises.reduce((n, e) => n + e.sets, 0);
+            const done = day.exercises.reduce((n, ex, i) => {
+                let c = 0;
+                for (let s = 0; s < ex.sets; s++) if (isSetDone(day.id, i, s)) c++;
+                return n + c;
+            }, 0);
+            return { total, done };
+        }
+
+        function renderTabs() {
+            tabsEl.innerHTML = PLAN.map(day => {
+                const { done, total } = dayCounts(day);
+                const isAllDone = total > 0 && done === total;
+                const isActive = day.id === currentDayId;
                 const isToday = day.id === todayId;
-                const openSaved = localStorage.getItem(`open:${day.id}`);
-                const isOpen = openSaved === '1' || (openSaved === null && isToday);
+                const abbr = day.dow.slice(0, 3);
+                const cls = [
+                    'day-tab',
+                    isActive ? 'is-active' : '',
+                    isAllDone ? 'is-done' : '',
+                    isToday ? 'is-today' : ''
+                ].filter(Boolean).join(' ');
+                return `
+                    <button class="${cls}" data-day="${day.id}" aria-pressed="${isActive}">
+                        <span class="abbr">${abbr}</span>
+                        <span class="pct">${done}/${total}</span>
+                    </button>
+                `;
+            }).join('');
+        }
 
-                const card = document.createElement('section');
-                card.className = `day ${isOpen ? 'is-open' : ''} ${done ? 'is-done' : ''} ${isToday ? 'is-today' : ''}`;
-                card.dataset.id = day.id;
+        function renderDayView() {
+            const day = PLAN.find(d => d.id === currentDayId);
+            if (!day) return;
+            const { done: doneSets, total: totalSets } = dayCounts(day);
+            const isAllDone = totalSets > 0 && doneSets === totalSets;
+            const isToday = day.id === todayId;
 
-                const totalSets = day.exercises.reduce((n, e) => n + e.sets, 0);
-                const doneSets = day.exercises.reduce((n, ex, i) => {
-                    let c = 0;
-                    for (let s = 0; s < ex.sets; s++) if (isSetDone(day.id, i, s)) c++;
-                    return n + c;
-                }, 0);
-
-                card.innerHTML = `
-                    <div class="day-header" data-toggle="${day.id}">
+            dayViewEl.innerHTML = `
+                <section class="day ${isAllDone ? 'is-done' : ''} ${isToday ? 'is-today' : ''}" data-id="${day.id}">
+                    <div class="day-header">
                         <div class="meta">
                             <div class="day-of-week">${day.dow}${isToday ? ' · Today' : ''}</div>
                             <div class="title">${day.title}</div>
                         </div>
                         <span class="badge">${doneSets}/${totalSets}</span>
-                        <span class="chev">▾</span>
                     </div>
                     <div class="day-body">
                         ${day.exercises.map((ex, i) => `
@@ -695,9 +779,21 @@
                         `).join('')}
                         ${day.note ? `<div class="ex-note" style="padding-top:12px">${day.note}</div>` : ''}
                     </div>
-                `;
-                daysEl.appendChild(card);
-            });
+                </section>
+            `;
+        }
+
+        function setDay(id) {
+            if (!PLAN.some(d => d.id === id)) return;
+            currentDayId = id;
+            localStorage.setItem('view', id);
+            renderTabs();
+            renderDayView();
+        }
+
+        function render() {
+            renderTabs();
+            renderDayView();
             updateProgress();
         }
 
@@ -708,43 +804,63 @@
         }
 
         // --- Interactions ------------------------------------------------------
-        daysEl.addEventListener('click', e => {
-            const toggleId = e.target.closest('[data-toggle]')?.dataset.toggle;
-            if (toggleId) {
-                const card = daysEl.querySelector(`.day[data-id="${toggleId}"]`);
-                const open = card.classList.toggle('is-open');
-                localStorage.setItem(`open:${toggleId}`, open ? '1' : '0');
-                return;
-            }
+        tabsEl.addEventListener('click', e => {
+            const btn = e.target.closest('.day-tab');
+            if (btn) setDay(btn.dataset.day);
+        });
 
+        dayViewEl.addEventListener('click', e => {
             const setBtn = e.target.closest('.set-btn');
-            if (setBtn) {
-                e.stopPropagation();
-                const { day, ex, set, rest, name } = setBtn.dataset;
-                const wasDone = setBtn.classList.contains('done');
-                const nowDone = !wasDone;
-                setBtn.classList.toggle('done', nowDone);
-                saveSet(day, +ex, +set, nowDone);
+            if (!setBtn) return;
+            const { day, ex, set, rest, name } = setBtn.dataset;
+            const wasDone = setBtn.classList.contains('done');
+            const nowDone = !wasDone;
+            setBtn.classList.toggle('done', nowDone);
+            saveSet(day, +ex, +set, nowDone);
 
-                const card = daysEl.querySelector(`.day[data-id="${day}"]`);
-                const all = card.querySelectorAll('.set-btn');
-                const doneN = card.querySelectorAll('.set-btn.done').length;
-                card.querySelector('.badge').textContent = `${doneN}/${all.length}`;
-                card.classList.toggle('is-done', doneN === all.length);
-                updateProgress();
-                refreshStreak();
+            const card = dayViewEl.querySelector(`.day[data-id="${day}"]`);
+            const all = card.querySelectorAll('.set-btn');
+            const doneN = card.querySelectorAll('.set-btn.done').length;
+            card.querySelector('.badge').textContent = `${doneN}/${all.length}`;
+            card.classList.toggle('is-done', doneN === all.length);
+            updateProgress();
+            refreshStreak();
+            renderTabs();
 
-                if (nowDone && +rest > 0) startTimer(+rest, name, +set + 1);
-            }
+            if (nowDone && +rest > 0) startTimer(+rest, name, +set + 1);
         });
 
-        document.getElementById('expand-today').addEventListener('click', () => {
-            const card = daysEl.querySelector(`.day[data-id="${todayId}"]`);
-            if (!card) return;
-            card.classList.add('is-open');
-            localStorage.setItem(`open:${todayId}`, '1');
-            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Swipe to switch days. Only horizontal-dominant swipes count.
+        let touchStart = null;
+        dayViewEl.addEventListener('touchstart', e => {
+            if (e.touches.length !== 1) { touchStart = null; return; }
+            const t = e.touches[0];
+            touchStart = { x: t.clientX, y: t.clientY, t: Date.now() };
+        }, { passive: true });
+        dayViewEl.addEventListener('touchend', e => {
+            if (!touchStart) return;
+            const t = e.changedTouches[0];
+            const dx = t.clientX - touchStart.x;
+            const dy = t.clientY - touchStart.y;
+            const dt = Date.now() - touchStart.t;
+            touchStart = null;
+            if (dt > 600) return;
+            if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+            const idx = PLAN.findIndex(d => d.id === currentDayId);
+            const next = Math.max(0, Math.min(PLAN.length - 1, dx < 0 ? idx + 1 : idx - 1));
+            if (next !== idx) setDay(PLAN[next].id);
         });
+
+        // Keyboard arrows on desktop
+        document.addEventListener('keydown', e => {
+            if (e.target.matches('input, textarea, button')) return;
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            const idx = PLAN.findIndex(d => d.id === currentDayId);
+            const next = Math.max(0, Math.min(PLAN.length - 1, e.key === 'ArrowRight' ? idx + 1 : idx - 1));
+            if (next !== idx) setDay(PLAN[next].id);
+        });
+
+        document.getElementById('goto-today').addEventListener('click', () => setDay(todayId));
 
         function resetWeek() {
             if (!confirm('Reset all checks for this week?')) return;
