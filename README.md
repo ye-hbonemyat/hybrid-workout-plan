@@ -10,9 +10,9 @@ Live: https://ye-hbonemyat.github.io/hybrid-workout-plan/
 | --------- | ---------------------- |
 | Monday    | Chest Priority         |
 | Tuesday   | Easy Run               |
-| Wednesday | Lower + Core           |
+| Wednesday | Back / Lat Priority    |
 | Thursday  | Tempo / Interval Run   |
-| Friday    | Back / Lat Priority    |
+| Friday    | Lower + Core           |
 | Saturday  | Chest + V-Taper        |
 | Sunday    | Long Run               |
 
