@@ -6,115 +6,427 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Hybrid Training Tracker</title>
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#222222">
+    <meta name="theme-color" content="#111827">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Hybrid Plan">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
     <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-2: #273449;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --accent: #10b981;
+            --accent-2: #3b82f6;
+            --danger: #ef4444;
+            --warn: #f59e0b;
+            --border: #334155;
+            --radius: 14px;
+            --shadow: 0 4px 14px rgba(0, 0, 0, .35);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 16px 16px 140px;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, var(--bg) 80%, transparent);
+            padding: 12px 0 8px;
+            z-index: 5;
         }
 
         h1 {
-            text-align: center;
-        }
-
-        .card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
-        }
-
-        label {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: .3px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-size: 18px;
+            gap: 10px;
+        }
+
+        h1 .dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
         }
 
         .progress {
-            text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            margin: 20px 0;
+            margin: 10px 0 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
         }
 
-        button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            background: #222;
-            color: white;
+        .progress .label {
+            font-size: 13px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+        }
+
+        .progress .count {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .progress .bar {
+            flex: 1;
+            height: 6px;
+            margin: 0 14px;
+            background: var(--surface-2);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress .bar > div {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            transition: width .3s ease;
+        }
+
+        .day {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin: 12px 0;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .day.is-today {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent), var(--shadow);
+        }
+
+        .day.is-done .day-header .title { text-decoration: line-through; opacity: .7; }
+        .day.is-done .day-header .badge { background: var(--accent); color: #052e1a; }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            cursor: pointer;
+            user-select: none;
+            gap: 12px;
+        }
+
+        .day-header .meta { flex: 1; min-width: 0; }
+        .day-header .day-of-week {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .day-header .title {
             font-size: 16px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .day-header .badge {
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--surface-2);
+            color: var(--text-dim);
+            padding: 4px 8px;
+            border-radius: 99px;
+            white-space: nowrap;
+        }
+        .day-header .chev {
+            transition: transform .2s;
+            color: var(--text-dim);
+        }
+        .day.is-open .day-header .chev { transform: rotate(180deg); }
+
+        .day-body {
+            display: none;
+            padding: 0 16px 16px;
+            border-top: 1px solid var(--border);
+        }
+        .day.is-open .day-body { display: block; }
+
+        .ex {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .ex:last-child { border-bottom: 0; }
+
+        .ex-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .ex-name { font-weight: 600; font-size: 15px; }
+        .ex-target { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
+
+        .sets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .set-btn {
+            min-width: 54px;
+            height: 44px;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform .08s, background .15s, border-color .15s;
+        }
+        .set-btn:active { transform: scale(.96); }
+        .set-btn.done {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #052e1a;
+        }
+
+        .ex-note {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        button.btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+        button.btn.primary { background: var(--accent); color: #052e1a; border-color: var(--accent); }
+        button.btn.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+
+        /* Rest timer */
+        .timer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(110%);
+            transition: transform .25s ease;
+            z-index: 10;
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, .35);
+        }
+        .timer.is-active { transform: translateY(0); }
+
+        .timer .time {
+            font-size: 30px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            min-width: 100px;
+            text-align: center;
+        }
+        .timer.is-warn .time { color: var(--warn); }
+        .timer.is-done .time { color: var(--danger); animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .55; }
+        }
+
+        .timer .meta {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .timer .meta .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+        .timer .meta .for {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timer .ctrls {
+            display: flex;
+            gap: 6px;
+        }
+        .timer .ctrls button {
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .timer .ctrls button.stop { color: var(--danger); border-color: var(--danger); }
+
+        @media (max-width: 380px) {
+            .day-header .title { font-size: 15px; }
+            .timer .time { font-size: 26px; min-width: 84px; }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Hybrid Plan</h1>
+    <header>
+        <h1><span class="dot"></span> Hybrid Plan</h1>
 
-    <div class="progress">
-            Weekly Progress:
-            <span id="count">0/7</span>
+        <div class="progress" aria-label="Weekly progress">
+            <span class="label">Week</span>
+            <div class="bar"><div id="bar-fill" style="width:0%"></div></div>
+            <span class="count" id="count">0/7</span>
+        </div>
+    </header>
+
+    <main id="days"></main>
+
+    <div class="actions">
+        <button class="btn" id="expand-today">Open Today</button>
+        <button class="btn danger" onclick="resetWeek()">Reset Week</button>
     </div>
 
-    <div class="card">
-        <label>Monday - Chest Priority
-            <input type="checkbox" class="workout" data-id="mon">
-        </label>
+    <div class="timer" id="timer" role="status" aria-live="polite">
+        <div class="time" id="timer-time">0:00</div>
+        <div class="meta">
+            <span class="label">Rest</span>
+            <span class="for" id="timer-for">—</span>
+        </div>
+        <div class="ctrls">
+            <button id="timer-add">+15s</button>
+            <button id="timer-toggle">Pause</button>
+            <button id="timer-stop" class="stop">Stop</button>
+        </div>
     </div>
-
-    <div class="card">
-        <label>Tuesday - Easy Run
-            <input type="checkbox" class="workout" data-id="tue">
-        </label>
-    </div>
-
-    <div class="card">
-        <label>Wednesday - Lower + Core
-            <input type="checkbox" class="workout" data-id="wed">
-        </label>
-    </div>
-
-    <div class="card">
-        <label>Thursday - Tempo/Interval Run
-            <input type="checkbox" class="workout" data-id="thu">
-        </label>
-    </div>
-
-    <div class="card">
-        <label>Friday - Back / Lat Priority
-            <input type="checkbox" class="workout" data-id="fri">
-        </label>
-    </div>
-
-    <div class="card">
-        <label>Saturday - Chest + V-Taper
-            <input type="checkbox" class="workout" data-id="sat">
-        </label>
-    </div>
-
-    <div class="card">
-        <label>Sunday - Long Run
-            <input type="checkbox" class="workout" data-id="sun">
-        </label>
-    </div>
-
-    <button onclick="resetWeek()">Reset Week</button>
 
     <script>
-        const workouts = document.querySelectorAll('.workout');
+        // --- Plan data ---------------------------------------------------------
+        const PLAN = [
+            {
+                id: "mon", dow: "Monday", title: "Upper — Chest Priority", type: "lift",
+                exercises: [
+                    { name: "Barbell Bench Press", sets: 4, reps: "5–8", rest: 180 },
+                    { name: "Incline Dumbbell Press", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Chest Dips (or machine press)", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Lat Pulldown (wide grip)", sets: 4, reps: "8–12", rest: 120 },
+                    { name: "Seated Cable Row", sets: 3, reps: "10–12", rest: 90 },
+                    { name: "Lateral Raise", sets: 3, reps: "12–15", rest: 60 },
+                    { name: "Triceps Pushdown", sets: 3, reps: "10–15", rest: 60 }
+                ]
+            },
+            {
+                id: "tue", dow: "Tuesday", title: "Easy Run", type: "run",
+                exercises: [
+                    { name: "Easy Run", sets: 1, reps: "Zone 2", rest: 0, note: "Conversational pace, 30–45 min." }
+                ]
+            },
+            {
+                id: "wed", dow: "Wednesday", title: "Lower Body + Core", type: "lift",
+                exercises: [
+                    { name: "Romanian Deadlift", sets: 3, reps: "6–10", rest: 180 },
+                    { name: "Bulgarian Split Squat", sets: 3, reps: "8–10 / leg", rest: 120 },
+                    { name: "Leg Press", sets: 3, reps: "10–12", rest: 120 },
+                    { name: "Hamstring Curl", sets: 3, reps: "10–15", rest: 90 },
+                    { name: "Standing Calf Raise", sets: 3, reps: "12–15", rest: 60 },
+                    { name: "Hanging Leg Raise", sets: 3, reps: "10–15", rest: 60 },
+                    { name: "Plank", sets: 3, reps: "30–60s", rest: 60 }
+                ],
+                note: "Challenging but don't destroy your legs — running performance still matters."
+            },
+            {
+                id: "thu", dow: "Thursday", title: "Tempo / Interval Run", type: "run",
+                exercises: [
+                    { name: "Tempo / Intervals", sets: 1, reps: "Hard effort", rest: 0, note: "Warm up 10 min, then intervals or tempo, cool down 5 min." }
+                ]
+            },
+            {
+                id: "fri", dow: "Friday", title: "Upper — Back / Lat Priority", type: "lift",
+                exercises: [
+                    { name: "Pull-Ups (or assisted)", sets: 4, reps: "AMRAP", rest: 150 },
+                    { name: "Lat Pulldown (close/neutral grip)", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Chest-Supported Row", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Single-Arm Cable Lat Pulldown", sets: 3, reps: "10–12", rest: 90 },
+                    { name: "Incline Dumbbell Press", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Face Pull", sets: 3, reps: "12–15", rest: 60 },
+                    { name: "Biceps Curl", sets: 3, reps: "10–15", rest: 60 }
+                ],
+                note: "Drive elbows down and back to build lat width."
+            },
+            {
+                id: "sat", dow: "Saturday", title: "Upper Hypertrophy — V-Taper", type: "lift",
+                exercises: [
+                    { name: "Incline Dumbbell Press", sets: 3, reps: "10–12", rest: 90 },
+                    { name: "Cable Fly", sets: 3, reps: "12–15", rest: 60 },
+                    { name: "Wide-Grip Lat Pulldown", sets: 3, reps: "10–12", rest: 90 },
+                    { name: "Seated Cable Row", sets: 3, reps: "10–12", rest: 90 },
+                    { name: "Lateral Raise", sets: 4, reps: "12–20", rest: 60 },
+                    { name: "Rear Delt Fly", sets: 3, reps: "12–15", rest: 60 },
+                    { name: "Cable Crunch", sets: 3, reps: "12–15", rest: 60 }
+                ],
+                note: "Aesthetics over max weight. Squeeze and control reps."
+            },
+            {
+                id: "sun", dow: "Sunday", title: "Long Run", type: "run",
+                exercises: [
+                    { name: "Long Run", sets: 1, reps: "60–90 min", rest: 0, note: "Steady, easy effort." }
+                ]
+            }
+        ];
 
+        const DOW_INDEX = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+
+        // --- Storage helpers ---------------------------------------------------
         function getWeekKey() {
             const d = new Date();
             const firstDay = new Date(d.getFullYear(), 0, 1);
@@ -125,49 +437,264 @@
         function autoReset() {
             const currentWeek = getWeekKey();
             const savedWeek = localStorage.getItem('week');
-
             if (savedWeek !== currentWeek) {
-                localStorage.clear();
+                Object.keys(localStorage)
+                    .filter(k => k.startsWith('set:') || k.startsWith('open:') || k === 'week')
+                    .forEach(k => localStorage.removeItem(k));
                 localStorage.setItem('week', currentWeek);
             }
         }
 
-        function updateProgress() {
-            let completed = 0;
-
-            workouts.forEach(box => {
-                if (box.checked) completed++;
+        function setKey(dayId, exIdx, setIdx) { return `set:${dayId}:${exIdx}:${setIdx}`; }
+        function isSetDone(dayId, exIdx, setIdx) {
+            return localStorage.getItem(setKey(dayId, exIdx, setIdx)) === '1';
+        }
+        function saveSet(dayId, exIdx, setIdx, done) {
+            if (done) localStorage.setItem(setKey(dayId, exIdx, setIdx), '1');
+            else localStorage.removeItem(setKey(dayId, exIdx, setIdx));
+        }
+        function isDayDone(day) {
+            return day.exercises.every((ex, i) => {
+                for (let s = 0; s < ex.sets; s++) {
+                    if (!isSetDone(day.id, i, s)) return false;
+                }
+                return true;
             });
-
-            document.getElementById('count').textContent =
-                `${completed}/7`;
         }
 
-        autoReset();
+        // --- Render ------------------------------------------------------------
+        const daysEl = document.getElementById('days');
+        const todayId = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
 
-        workouts.forEach(box => {
+        function render() {
+            daysEl.innerHTML = '';
+            PLAN.forEach(day => {
+                const done = isDayDone(day);
+                const isToday = day.id === todayId;
+                const openSaved = localStorage.getItem(`open:${day.id}`);
+                const isOpen = openSaved === '1' || (openSaved === null && isToday);
 
-            const saved =
-                localStorage.getItem(box.dataset.id);
+                const card = document.createElement('section');
+                card.className = `day ${isOpen ? 'is-open' : ''} ${done ? 'is-done' : ''} ${isToday ? 'is-today' : ''}`;
+                card.dataset.id = day.id;
 
-            box.checked = saved === 'true';
+                const totalSets = day.exercises.reduce((n, e) => n + e.sets, 0);
+                const doneSets = day.exercises.reduce((n, ex, i) => {
+                    let c = 0;
+                    for (let s = 0; s < ex.sets; s++) if (isSetDone(day.id, i, s)) c++;
+                    return n + c;
+                }, 0);
 
-            box.addEventListener('change', () => {
-
-                localStorage.setItem(
-                    box.dataset.id,
-                    box.checked
-                );
-
-                updateProgress();
+                card.innerHTML = `
+                    <div class="day-header" data-toggle="${day.id}">
+                        <div class="meta">
+                            <div class="day-of-week">${day.dow}${isToday ? ' · Today' : ''}</div>
+                            <div class="title">${day.title}</div>
+                        </div>
+                        <span class="badge">${doneSets}/${totalSets}</span>
+                        <span class="chev">▾</span>
+                    </div>
+                    <div class="day-body">
+                        ${day.exercises.map((ex, i) => `
+                            <div class="ex">
+                                <div class="ex-head">
+                                    <div class="ex-name">${ex.name}</div>
+                                    <div class="ex-target">${ex.sets}×${ex.reps}${ex.rest ? ` · ${ex.rest}s rest` : ''}</div>
+                                </div>
+                                <div class="sets">
+                                    ${Array.from({ length: ex.sets }).map((_, s) => `
+                                        <button class="set-btn ${isSetDone(day.id, i, s) ? 'done' : ''}"
+                                                data-day="${day.id}"
+                                                data-ex="${i}"
+                                                data-set="${s}"
+                                                data-rest="${ex.rest}"
+                                                data-name="${ex.name}">
+                                            ${ex.sets === 1 ? 'Done' : `Set ${s + 1}`}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                                ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+                            </div>
+                        `).join('')}
+                        ${day.note ? `<div class="ex-note" style="padding-top:12px">${day.note}</div>` : ''}
+                    </div>
+                `;
+                daysEl.appendChild(card);
             });
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const doneCount = PLAN.filter(d => isDayDone(d)).length;
+            document.getElementById('count').textContent = `${doneCount}/7`;
+            document.getElementById('bar-fill').style.width = `${(doneCount / 7) * 100}%`;
+        }
+
+        // --- Interactions ------------------------------------------------------
+        daysEl.addEventListener('click', e => {
+            const toggleId = e.target.closest('[data-toggle]')?.dataset.toggle;
+            if (toggleId) {
+                const card = daysEl.querySelector(`.day[data-id="${toggleId}"]`);
+                const open = card.classList.toggle('is-open');
+                localStorage.setItem(`open:${toggleId}`, open ? '1' : '0');
+                return;
+            }
+
+            const setBtn = e.target.closest('.set-btn');
+            if (setBtn) {
+                e.stopPropagation();
+                const { day, ex, set, rest, name } = setBtn.dataset;
+                const wasDone = setBtn.classList.contains('done');
+                const nowDone = !wasDone;
+                setBtn.classList.toggle('done', nowDone);
+                saveSet(day, +ex, +set, nowDone);
+
+                const card = daysEl.querySelector(`.day[data-id="${day}"]`);
+                const all = card.querySelectorAll('.set-btn');
+                const doneN = card.querySelectorAll('.set-btn.done').length;
+                card.querySelector('.badge').textContent = `${doneN}/${all.length}`;
+                card.classList.toggle('is-done', doneN === all.length);
+                updateProgress();
+
+                if (nowDone && +rest > 0) startTimer(+rest, name, +set + 1);
+            }
         });
 
-        updateProgress();
+        document.getElementById('expand-today').addEventListener('click', () => {
+            const card = daysEl.querySelector(`.day[data-id="${todayId}"]`);
+            if (!card) return;
+            card.classList.add('is-open');
+            localStorage.setItem(`open:${todayId}`, '1');
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
 
         function resetWeek() {
-            localStorage.clear();
+            if (!confirm('Reset all checks for this week?')) return;
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('set:') || k.startsWith('open:'))
+                .forEach(k => localStorage.removeItem(k));
             location.reload();
+        }
+        window.resetWeek = resetWeek;
+
+        // --- Rest timer --------------------------------------------------------
+        const timerEl = document.getElementById('timer');
+        const timeEl = document.getElementById('timer-time');
+        const forEl = document.getElementById('timer-for');
+        const toggleBtn = document.getElementById('timer-toggle');
+        const stopBtn = document.getElementById('timer-stop');
+        const addBtn = document.getElementById('timer-add');
+
+        let timerState = { remaining: 0, running: false, intervalId: null, total: 0 };
+
+        function fmt(s) {
+            const m = Math.floor(s / 60);
+            const r = s % 60;
+            return `${m}:${r.toString().padStart(2, '0')}`;
+        }
+
+        function renderTimer() {
+            timeEl.textContent = fmt(Math.max(0, timerState.remaining));
+            timerEl.classList.toggle('is-warn', timerState.remaining > 0 && timerState.remaining <= 10);
+            timerEl.classList.toggle('is-done', timerState.remaining <= 0);
+            toggleBtn.textContent = timerState.running ? 'Pause' : 'Resume';
+        }
+
+        function startTimer(seconds, exerciseName, setNumber) {
+            stopTimer(false);
+            timerState.total = seconds;
+            timerState.remaining = seconds;
+            timerState.running = true;
+            forEl.textContent = `After ${exerciseName} · Set ${setNumber}`;
+            timerEl.classList.add('is-active');
+            renderTimer();
+
+            timerState.intervalId = setInterval(() => {
+                if (!timerState.running) return;
+                timerState.remaining -= 1;
+                renderTimer();
+                if (timerState.remaining <= 0) {
+                    finishTimer();
+                }
+            }, 1000);
+        }
+
+        function finishTimer() {
+            timerState.running = false;
+            clearInterval(timerState.intervalId);
+            timerState.intervalId = null;
+            beep();
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            renderTimer();
+        }
+
+        function stopTimer(hide = true) {
+            timerState.running = false;
+            clearInterval(timerState.intervalId);
+            timerState.intervalId = null;
+            timerState.remaining = 0;
+            if (hide) timerEl.classList.remove('is-active');
+            renderTimer();
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (timerState.remaining <= 0) return;
+            timerState.running = !timerState.running;
+            renderTimer();
+        });
+        stopBtn.addEventListener('click', () => stopTimer(true));
+        addBtn.addEventListener('click', () => {
+            timerState.remaining += 15;
+            if (!timerState.running && timerState.remaining > 0) {
+                timerState.running = true;
+                if (!timerState.intervalId) {
+                    timerState.intervalId = setInterval(() => {
+                        if (!timerState.running) return;
+                        timerState.remaining -= 1;
+                        renderTimer();
+                        if (timerState.remaining <= 0) finishTimer();
+                    }, 1000);
+                }
+            }
+            renderTimer();
+        });
+
+        // Web Audio API beep — no asset needed
+        let audioCtx;
+        function beep() {
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const beepAt = (offset, freq) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.frequency.value = freq;
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    const t = audioCtx.currentTime + offset;
+                    g.gain.setValueAtTime(0.0001, t);
+                    g.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+                    o.start(t);
+                    o.stop(t + 0.26);
+                };
+                beepAt(0, 880);
+                beepAt(0.32, 880);
+                beepAt(0.64, 1320);
+            } catch (e) { /* audio not allowed yet */ }
+        }
+
+        // --- Boot --------------------------------------------------------------
+        autoReset();
+        render();
+
+        // Register service worker for offline + installable PWA.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker
+                    .register('./sw.js')
+                    .catch((err) => console.warn('SW registration failed', err));
+            });
         }
     </script>
 
