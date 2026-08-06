@@ -693,7 +693,7 @@
     <header>
         <h1>
             <img class="logo" src="./icons/icon-192.png" alt="" width="30" height="30">
-            Hybrid Plan
+            Sub-4 + Physique Plan
             <span class="spacer"></span>
             <button id="unit-toggle" class="icon-btn unit-chip" type="button" aria-label="Toggle weight unit">
                 <span id="unit-label">kg</span>
@@ -772,75 +772,78 @@
 
     <script>
         // --- Plan data ---------------------------------------------------------
+        // Concurrent plan: retain enough upper-body volume for an athletic,
+        // lean-muscular physique while prioritising four purposeful run sessions.
+        // The v2 IDs prevent old exercise-indexed weights from being shown on a
+        // different exercise after this program update.
         const PLAN = [
             {
-                id: "mon", dow: "Monday", title: "Upper — Chest Priority", type: "lift",
+                id: "mon-v2", dow: "Monday", title: "Upper A — Strength + V-Taper", type: "lift",
                 exercises: [
                     { name: "Barbell Bench Press", sets: 4, reps: "5–8", rest: 180 },
+                    { name: "Neutral-Grip Pull-Up (or Pulldown)", sets: 3, reps: "6–10", rest: 150 },
                     { name: "Incline Dumbbell Press", sets: 3, reps: "8–12", rest: 120 },
-                    { name: "Chest Dips (or machine press)", sets: 3, reps: "8–12", rest: 120 },
-                    { name: "Lat Pulldown (wide grip)", sets: 4, reps: "8–12", rest: 120 },
-                    { name: "Seated Cable Row", sets: 3, reps: "10–12", rest: 90 },
-                    { name: "Lateral Raise", sets: 3, reps: "12–15", rest: 60 },
-                    { name: "Triceps Pushdown", sets: 3, reps: "10–15", rest: 60 }
-                ]
-            },
-            {
-                id: "tue", dow: "Tuesday", title: "Easy Run", type: "run",
-                exercises: [
-                    { name: "Easy Run", sets: 1, reps: "Zone 2", rest: 0, note: "Conversational pace, 30–45 min." }
-                ]
-            },
-            {
-                id: "wed", dow: "Wednesday", title: "Upper — Back / Lat Priority", type: "lift",
-                exercises: [
-                    { name: "Pull-Ups (or assisted)", sets: 4, reps: "AMRAP", rest: 150 },
-                    { name: "Lat Pulldown (close/neutral grip)", sets: 3, reps: "8–12", rest: 120 },
                     { name: "Chest-Supported Row", sets: 3, reps: "8–12", rest: 120 },
-                    { name: "Single-Arm Cable Lat Pulldown", sets: 3, reps: "10–12", rest: 90 },
-                    { name: "Incline Dumbbell Press", sets: 3, reps: "8–12", rest: 120 },
-                    { name: "Face Pull", sets: 3, reps: "12–15", rest: 60 },
-                    { name: "Biceps Curl", sets: 3, reps: "10–15", rest: 60 }
+                    { name: "Cable Lateral Raise", sets: 3, reps: "12–20", rest: 60 },
+                    { name: "Overhead Cable Triceps Extension", sets: 3, reps: "10–15", rest: 75 },
+                    { name: "Incline Dumbbell Curl", sets: 3, reps: "10–15", rest: 75 }
                 ],
-                note: "Drive elbows down and back to build lat width."
+                note: "Leave 2 reps in reserve (RIR) on all work sets. Add load only after every set reaches the top of its range."
             },
             {
-                id: "thu", dow: "Thursday", title: "Tempo / Interval Run", type: "run",
+                id: "tue-v2", dow: "Tuesday", title: "Quality Run — Threshold / Intervals", type: "run",
                 exercises: [
-                    { name: "Tempo / Intervals", sets: 1, reps: "Hard effort", rest: 0, note: "Warm up 10 min, then intervals or tempo, cool down 5 min." }
-                ]
+                    { name: "Threshold or Interval Run", sets: 1, reps: "45–70 min total", rest: 0, note: "Warm up 10–15 min, then alternate weekly: 20–40 min total at comfortably-hard threshold effort, or 5–6 × 3 min hard / 2 min easy. Cool down 10 min. Keep this as the only hard run." }
+                ],
+                note: "Build the session gradually: add one interval or 5 minutes of threshold work only when the current week feels controlled."
             },
             {
-                id: "fri", dow: "Friday", title: "Lower Body + Core", type: "lift",
+                id: "wed-v2", dow: "Wednesday", title: "Lower — Runner-Resilient Hypertrophy", type: "lift",
                 exercises: [
+                    { name: "Front Squat (or Hack Squat)", sets: 3, reps: "5–8", rest: 180 },
                     { name: "Romanian Deadlift", sets: 3, reps: "6–10", rest: 180 },
-                    { name: "Bulgarian Split Squat", sets: 3, reps: "8–10 / leg", rest: 120 },
-                    { name: "Leg Press", sets: 3, reps: "10–12", rest: 120 },
-                    { name: "Hamstring Curl", sets: 3, reps: "10–15", rest: 90 },
-                    { name: "Standing Calf Raise", sets: 3, reps: "12–15", rest: 60 },
-                    { name: "Hanging Leg Raise", sets: 3, reps: "10–15", rest: 60 },
-                    { name: "Plank", sets: 3, reps: "30–60s", rest: 60 }
+                    { name: "Bulgarian Split Squat", sets: 2, reps: "8–12 / leg", rest: 120 },
+                    { name: "Seated Leg Curl", sets: 3, reps: "10–15", rest: 90 },
+                    { name: "Leg Extension", sets: 2, reps: "12–15", rest: 75 },
+                    { name: "Standing Calf Raise", sets: 3, reps: "10–15", rest: 75 },
+                    { name: "Pallof Press", sets: 3, reps: "10–15 / side", rest: 60 }
                 ],
-                note: "Challenging but don't destroy your legs — running performance still matters."
+                note: "Use controlled full ranges and stop at 2–3 RIR—this session builds durable legs without sabotaging Thursday recovery or Sunday’s long run."
             },
             {
-                id: "sat", dow: "Saturday", title: "Upper Hypertrophy — V-Taper", type: "lift",
+                id: "thu-v2", dow: "Thursday", title: "Easy Aerobic Run", type: "run",
                 exercises: [
-                    { name: "Incline Dumbbell Press", sets: 3, reps: "10–12", rest: 90 },
-                    { name: "Cable Fly", sets: 3, reps: "12–15", rest: 60 },
-                    { name: "Wide-Grip Lat Pulldown", sets: 3, reps: "10–12", rest: 90 },
-                    { name: "Seated Cable Row", sets: 3, reps: "10–12", rest: 90 },
-                    { name: "Lateral Raise", sets: 4, reps: "12–20", rest: 60 },
-                    { name: "Rear Delt Fly", sets: 3, reps: "12–15", rest: 60 },
-                    { name: "Cable Crunch", sets: 3, reps: "12–15", rest: 60 }
+                    { name: "Easy Zone 2 Run", sets: 1, reps: "40–60 min", rest: 0, note: "Conversational pace; you should be able to speak in full sentences. Finish with 4–6 relaxed 20-second strides only if your legs feel fresh." }
                 ],
-                note: "Aesthetics over max weight. Squeeze and control reps."
+                note: "This run is recovery and aerobic volume, not a race. Keep it easy enough to arrive fresh for Friday lifting."
             },
             {
-                id: "sun", dow: "Sunday", title: "Long Run", type: "run",
+                id: "fri-v2", dow: "Friday", title: "Upper B — Hypertrophy + Arms", type: "lift",
                 exercises: [
-                    { name: "Long Run", sets: 1, reps: "60–90 min", rest: 0, note: "Steady, easy effort." }
-                ]
+                    { name: "Incline Dumbbell Press", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Wide-Grip Lat Pulldown", sets: 3, reps: "8–12", rest: 120 },
+                    { name: "Low-to-High Cable Fly", sets: 3, reps: "12–15", rest: 75 },
+                    { name: "Seated Cable Row", sets: 3, reps: "10–15", rest: 90 },
+                    { name: "Cable Lateral Raise", sets: 4, reps: "12–20", rest: 60 },
+                    { name: "Rear-Delt Cable Fly", sets: 3, reps: "12–20", rest: 60 },
+                    { name: "Cable Curl", sets: 3, reps: "10–15", rest: 75 },
+                    { name: "Rope Pushdown", sets: 3, reps: "10–15", rest: 75 }
+                ],
+                note: "Use 1–2 RIR. Pause briefly in the stretched position on flys, curls, and extensions; do not chase failure on compounds."
+            },
+            {
+                id: "sat-v2", dow: "Saturday", title: "Easy Run — Base + Economy", type: "run",
+                exercises: [
+                    { name: "Easy Zone 2 Run", sets: 1, reps: "30–50 min", rest: 0, note: "Comfortable, nasal-breathing/conversational effort. If fatigue is high, cut this to 20–30 min or walk instead—protect tomorrow’s long run." }
+                ],
+                note: "Fuel and hydrate after this run for Sunday. No speed work today."
+            },
+            {
+                id: "sun-v2", dow: "Sunday", title: "Long Run — Marathon Builder", type: "run",
+                exercises: [
+                    { name: "Long Run", sets: 1, reps: "75–150 min", rest: 0, note: "Easy Zone 2 throughout. Start at a distance you can finish comfortably; add no more than 5–10% distance most weeks, with every fourth week reduced by ~20–30%. Practice carbs and fluids on runs over 75 min." }
+                ],
+                note: "For a sub-4 goal, keep most long runs easy. Add marathon-pace sections only after you have several consistent weeks of pain-free mileage."
             }
         ];
 
@@ -987,7 +990,7 @@
         // --- Render ------------------------------------------------------------
         const tabsEl = document.getElementById('day-tabs');
         const dayViewEl = document.getElementById('day-view');
-        const todayId = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+        const todayId = ['sun-v2', 'mon-v2', 'tue-v2', 'wed-v2', 'thu-v2', 'fri-v2', 'sat-v2'][new Date().getDay()];
 
         let currentDayId = (() => {
             const saved = localStorage.getItem('view');
