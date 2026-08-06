@@ -1,6 +1,6 @@
-# Hybrid Workout Plan
+# Sub-4 + Physique Plan
 
-A single-page **hybrid training tracker** (lifting + running) you can install on your phone like a native app. Tap through each set, track weights for progressive overload, watch tutorials inline, and let the week auto-reset every Monday.
+A single-page **hybrid training tracker** for pursuing a sub-4 marathon alongside a lean, muscular physique. Install it on your phone like a native app, tap through each set, track weights for progressive overload, watch tutorials inline, and let the week auto-reset every Monday.
 
 Live: https://ye-hbonemyat.github.io/hybrid-workout-plan/
 
@@ -8,17 +8,19 @@ No backend, no build step, no dependencies — just `index.html`, `manifest.json
 
 ## The plan
 
-| Day       | Focus                       |
-| --------- | --------------------------- |
-| Monday    | Upper — Chest Priority      |
-| Tuesday   | Easy Run                    |
-| Wednesday | Upper — Back / Lat Priority |
-| Thursday  | Tempo / Interval Run        |
-| Friday    | Lower Body + Core           |
-| Saturday  | Upper Hypertrophy — V-Taper |
-| Sunday    | Long Run                    |
+| Day       | Focus                                      |
+| --------- | ------------------------------------------ |
+| Monday    | Upper A — Strength + V-Taper               |
+| Tuesday   | Quality Run — Threshold / Intervals        |
+| Wednesday | Lower — Runner-Resilient Hypertrophy       |
+| Thursday  | Easy Aerobic Run                           |
+| Friday    | Upper B — Hypertrophy + Arms               |
+| Saturday  | Easy Run — Base + Economy                  |
+| Sunday    | Long Run — Marathon Builder                |
 
-Each lifting day has a fixed exercise list with prescribed sets, rep ranges, and rest times. Edit the `PLAN` array near the top of the `<script>` block in `index.html` to change exercises, sets, reps, or rest seconds.
+The program has four purposeful runs: one quality session, two easy Zone 2 runs, and a progressively built long run. The two upper-body days retain physique-focused volume, while Wednesday develops lower-body strength and durability without compromising the hard run or long run. Each lifting day includes RIR and progression guidance in the app.
+
+Each lifting day has a fixed exercise list with prescribed sets, rep ranges, and rest times. Edit the `PLAN` array near the top of the `<script>` block in `index.html` to change exercises, sets, reps, rest seconds, or the day notes.
 
 ## Features
 
@@ -135,6 +137,10 @@ All state lives in `localStorage` on the device. Keys:
 | `open:*`                       | Legacy (cleared on reset) | No longer written; tolerated for old installs.       |
 
 The auto-reset only removes keys that start with `set:` or `open:`. The manual **Reset Week** button does the same and also asks for confirmation. Nothing else is touched.
+
+### Program updates and existing data
+
+The current program uses versioned day IDs such as `mon-v2` and `sun-v2`. This intentionally prevents exercise-indexed weights from an older program appearing beside a different exercise after a plan update. Existing `weight:mon:*` and `set:mon:*` values remain in local storage but are no longer used by the current plan; the new program starts with empty checkboxes and weight fields. Enter your current working weights again for the v2 exercises. Your old values remain on the device unless you clear browser storage manually.
 
 ## Adding tutorial videos
 
