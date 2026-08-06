@@ -11,14 +11,14 @@ No backend, no build step, no dependencies — just `index.html`, `manifest.json
 | Day       | Focus                                      |
 | --------- | ------------------------------------------ |
 | Monday    | Upper A — Strength + V-Taper               |
-| Tuesday   | Quality Run — Threshold / Intervals        |
+| Tuesday   | Easy Aerobic Run                           |
 | Wednesday | Lower — Runner-Resilient Hypertrophy       |
-| Thursday  | Easy Aerobic Run                           |
+| Thursday  | Quality Run — Threshold / Intervals        |
 | Friday    | Upper B — Hypertrophy + Arms               |
 | Saturday  | Easy Run — Base + Economy                  |
 | Sunday    | Long Run — Marathon Builder                |
 
-The program has four purposeful runs: one quality session, two easy Zone 2 runs, and a progressively built long run. The two upper-body days retain physique-focused volume, while Wednesday develops lower-body strength and durability without compromising the hard run or long run. Each lifting day includes RIR and progression guidance in the app.
+The program has four purposeful runs: one quality session, two easy Zone 2 runs, and a progressively built long run. The two upper-body days retain physique-focused volume, while Wednesday develops lower-body strength and durability with a conservative RIR target before Thursday’s quality run. Each lifting day includes RIR and progression guidance in the app.
 
 Each lifting day has a fixed exercise list with prescribed sets, rep ranges, and rest times. Edit the `PLAN` array near the top of the `<script>` block in `index.html` to change exercises, sets, reps, rest seconds, or the day notes.
 
