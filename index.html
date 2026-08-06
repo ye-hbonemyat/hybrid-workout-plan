@@ -847,11 +847,16 @@
         const DOW_INDEX = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 
         // --- Storage helpers ---------------------------------------------------
-        function getWeekKey() {
-            const d = new Date();
-            const firstDay = new Date(d.getFullYear(), 0, 1);
-            const week = Math.ceil((((d - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
-            return `${d.getFullYear()}-W${week}`;
+        function getWeekKey(date = new Date()) {
+            // ISO weeks start on Monday and can belong to the adjacent calendar
+            // year. Keeping this in one helper makes reset and streak logic agree
+            // at New Year.
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const day = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - day);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
         }
 
         function autoReset() {
@@ -926,9 +931,21 @@
         function previousWeekKey() {
             const d = new Date();
             d.setDate(d.getDate() - 7);
-            const firstDay = new Date(d.getFullYear(), 0, 1);
-            const week = Math.ceil((((d - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
-            return `${d.getFullYear()}-W${week}`;
+            return getWeekKey(d);
+        }
+
+        // A streak remains visible during the week immediately after it was
+        // earned. If a full week then passes without a completion, it has been
+        // skipped and the current streak must end.
+        function reconcileStreak() {
+            const s = getStreak();
+            const currentWeek = getWeekKey();
+            const previousWeek = previousWeekKey();
+            if (s.week && s.week !== currentWeek && s.week !== previousWeek) {
+                s.streak = 0;
+                s.week = '';
+                saveStreak(s);
+            }
         }
 
         // Re-evaluate the streak when the current week's done-count changes.
@@ -947,7 +964,9 @@
             } else if (!allDone && s.week === currentWeek) {
                 // Un-completed within the same week — back the count out.
                 s.streak = Math.max(0, s.streak - 1);
-                s.week = '';
+                // Keep the preceding completed week as the anchor. Completing
+                // this week again should restore the streak rather than restart it.
+                s.week = s.streak > 0 ? previousWeekKey() : '';
                 saveStreak(s);
             }
             renderStreak();
@@ -1300,7 +1319,8 @@
             Object.keys(localStorage)
                 .filter(k => k.startsWith('set:') || k.startsWith('open:'))
                 .forEach(k => localStorage.removeItem(k));
-            location.reload();
+            refreshStreak();
+            render();
         }
         window.resetWeek = resetWeek;
 
@@ -1475,6 +1495,7 @@
 
         // --- Boot --------------------------------------------------------------
         autoReset();
+        reconcileStreak();
         render();
         renderStreak();
 
