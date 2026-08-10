@@ -774,11 +774,11 @@
         // --- Plan data ---------------------------------------------------------
         // Concurrent plan: retain enough upper-body volume for an athletic,
         // lean-muscular physique while prioritising four purposeful run sessions.
-        // The v2 IDs prevent old exercise-indexed weights from being shown on a
-        // different exercise after this program update.
+        // Versioned IDs prevent old exercise-indexed weights from being shown on
+        // a different exercise after program updates or day reassignments.
         const PLAN = [
             {
-                id: "mon-v2", dow: "Monday", title: "Upper A — Strength + V-Taper", type: "lift",
+                id: "mon-v3", dow: "Monday", title: "Upper A + Easy Run", type: "lift",
                 exercises: [
                     { name: "Barbell Bench Press", sets: 4, reps: "5–8", rest: 180 },
                     { name: "Neutral-Grip Pull-Up (or Pulldown)", sets: 3, reps: "6–10", rest: 150 },
@@ -786,9 +786,10 @@
                     { name: "Chest-Supported Row", sets: 3, reps: "8–12", rest: 120 },
                     { name: "Cable Lateral Raise", sets: 3, reps: "12–20", rest: 60 },
                     { name: "Overhead Cable Triceps Extension", sets: 3, reps: "10–15", rest: 75 },
-                    { name: "Incline Dumbbell Curl", sets: 3, reps: "10–15", rest: 75 }
+                    { name: "Incline Dumbbell Curl", sets: 3, reps: "10–15", rest: 75 },
+                    { name: "Easy Zone 2 Run — Base + Economy", sets: 1, reps: "30–50 min", rest: 0, type: "run", note: "Comfortable, nasal-breathing/conversational effort. If fatigue is high, cut this to 20–30 min or walk instead." }
                 ],
-                note: "Leave 2 reps in reserve (RIR) on all work sets. Add load only after every set reaches the top of its range."
+                note: "Complete the easy run and upper-body work on Monday. Leave 2 reps in reserve (RIR) on all lifting work sets."
             },
             {
                 id: "tue-v2", dow: "Tuesday", title: "Easy Aerobic Run", type: "run",
@@ -798,27 +799,7 @@
                 note: "This run is recovery and aerobic volume, not a race. Keep it easy enough to arrive fresh for Wednesday lifting."
             },
             {
-                id: "wed-v2", dow: "Wednesday", title: "Lower — Runner-Resilient Hypertrophy", type: "lift",
-                exercises: [
-                    { name: "Front Squat (or Hack Squat)", sets: 3, reps: "5–8", rest: 180 },
-                    { name: "Romanian Deadlift", sets: 3, reps: "6–10", rest: 180 },
-                    { name: "Bulgarian Split Squat", sets: 2, reps: "8–12 / leg", rest: 120 },
-                    { name: "Seated Leg Curl", sets: 3, reps: "10–15", rest: 90 },
-                    { name: "Leg Extension", sets: 2, reps: "12–15", rest: 75 },
-                    { name: "Standing Calf Raise", sets: 3, reps: "10–15", rest: 75 },
-                    { name: "Pallof Press", sets: 3, reps: "10–15 / side", rest: 60 }
-                ],
-                note: "Use controlled full ranges and stop at 2–3 RIR—this session builds durable legs while preserving as much as possible for Thursday’s quality run and Sunday’s long run."
-            },
-            {
-                id: "thu-v2", dow: "Thursday", title: "Quality Run — Threshold / Intervals", type: "run",
-                exercises: [
-                    { name: "Threshold or Interval Run", sets: 1, reps: "45–70 min total", rest: 0, note: "Warm up 10–15 min, then alternate weekly: 20–40 min total at comfortably-hard threshold effort, or 5–6 × 3 min hard / 2 min easy. Cool down 10 min. Keep this as the only hard run." }
-                ],
-                note: "Build the session gradually: add one interval or 5 minutes of threshold work only when the current week feels controlled."
-            },
-            {
-                id: "fri-v2", dow: "Friday", title: "Upper B — Hypertrophy + Arms", type: "lift",
+                id: "wed-v3", dow: "Wednesday", title: "Upper B — Hypertrophy + Arms", type: "lift",
                 exercises: [
                     { name: "Incline Dumbbell Press", sets: 3, reps: "8–12", rest: 120 },
                     { name: "Wide-Grip Lat Pulldown", sets: 3, reps: "8–12", rest: 120 },
@@ -832,11 +813,31 @@
                 note: "Use 1–2 RIR. Pause briefly in the stretched position on flys, curls, and extensions; do not chase failure on compounds."
             },
             {
-                id: "sat-v2", dow: "Saturday", title: "Easy Run — Base + Economy", type: "run",
+                id: "thu-v2", dow: "Thursday", title: "Quality Run — Threshold / Intervals", type: "run",
                 exercises: [
-                    { name: "Easy Zone 2 Run", sets: 1, reps: "30–50 min", rest: 0, note: "Comfortable, nasal-breathing/conversational effort. If fatigue is high, cut this to 20–30 min or walk instead—protect tomorrow’s long run." }
+                    { name: "Threshold or Interval Run", sets: 1, reps: "45–70 min total", rest: 0, note: "Warm up 10–15 min, then alternate weekly: 20–40 min total at comfortably-hard threshold effort, or 5–6 × 3 min hard / 2 min easy. Cool down 10 min. Keep this as the only hard run." }
                 ],
-                note: "Fuel and hydrate after this run for Sunday. No speed work today."
+                note: "Build the session gradually: add one interval or 5 minutes of threshold work only when the current week feels controlled."
+            },
+            {
+                id: "fri-v3", dow: "Friday", title: "Lower — Runner-Resilient Hypertrophy", type: "lift",
+                exercises: [
+                    { name: "Front Squat (or Hack Squat)", sets: 3, reps: "5–8", rest: 180 },
+                    { name: "Romanian Deadlift", sets: 3, reps: "6–10", rest: 180 },
+                    { name: "Bulgarian Split Squat", sets: 2, reps: "8–12 / leg", rest: 120 },
+                    { name: "Seated Leg Curl", sets: 3, reps: "10–15", rest: 90 },
+                    { name: "Leg Extension", sets: 2, reps: "12–15", rest: 75 },
+                    { name: "Standing Calf Raise", sets: 3, reps: "10–15", rest: 75 },
+                    { name: "Pallof Press", sets: 3, reps: "10–15 / side", rest: 60 }
+                ],
+                note: "Use controlled full ranges and stop at 2–3 RIR so Friday builds durable legs without compromising Sunday’s long run."
+            },
+            {
+                id: "sat-v3", dow: "Saturday", title: "Rest / Mobility", type: "rest",
+                exercises: [
+                    { name: "Rest or light mobility", sets: 1, reps: "Optional 10–20 min", rest: 0, type: "rest" }
+                ],
+                note: "Keep Saturday restorative so you arrive ready for Sunday’s long run."
             },
             {
                 id: "sun-v2", dow: "Sunday", title: "Long Run — Marathon Builder", type: "run",
@@ -990,7 +991,7 @@
         // --- Render ------------------------------------------------------------
         const tabsEl = document.getElementById('day-tabs');
         const dayViewEl = document.getElementById('day-view');
-        const todayId = ['sun-v2', 'mon-v2', 'tue-v2', 'wed-v2', 'thu-v2', 'fri-v2', 'sat-v2'][new Date().getDay()];
+        const todayId = ['sun-v2', 'mon-v3', 'tue-v2', 'wed-v3', 'thu-v2', 'fri-v3', 'sat-v3'][new Date().getDay()];
 
         let currentDayId = (() => {
             const saved = localStorage.getItem('view');
@@ -1063,12 +1064,13 @@
                                     </div>
                                     <div class="ex-target">${ex.sets}×${ex.reps}${ex.rest ? ` · ${ex.rest}s rest` : ''}</div>
                                 </div>
-                                <div class="sets ${day.type === 'run' ? 'is-run' : ''}">
+                                <div class="sets ${((ex.type || day.type) === 'run' || (ex.type || day.type) === 'rest') ? 'is-run' : ''}">
                                     ${Array.from({ length: ex.sets }).map((_, s) => {
                                         const done = isSetDone(day.id, i, s);
                                         const w = getWeight(day.id, i, s);
-                                        const showWeight = day.type !== 'run';
-                                        const labelText = day.type === 'run'
+                                        const exType = ex.type || day.type;
+                                        const showWeight = exType === 'lift';
+                                        const labelText = exType !== 'lift'
                                             ? 'Mark complete'
                                             : (ex.sets === 1 ? 'Done' : `S${s + 1}`);
                                         return `
