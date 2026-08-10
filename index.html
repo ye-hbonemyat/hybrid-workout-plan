@@ -833,11 +833,16 @@
                 note: "Use controlled full ranges and stop at 2–3 RIR so Friday builds durable legs without compromising Sunday’s long run."
             },
             {
-                id: "sat-v3", dow: "Saturday", title: "Rest / Mobility", type: "rest",
+                id: "sat-v4", dow: "Saturday", title: "Light Upper — Pump + Mobility", type: "lift",
                 exercises: [
-                    { name: "Rest or light mobility", sets: 1, reps: "Optional 10–20 min", rest: 0, type: "rest" }
+                    { name: "Machine Chest Press", sets: 2, reps: "10–15", rest: 90 },
+                    { name: "Cable Row", sets: 2, reps: "10–15", rest: 90 },
+                    { name: "Cable Lateral Raise", sets: 3, reps: "15–20", rest: 60 },
+                    { name: "Rear-Delt Cable Fly", sets: 2, reps: "15–20", rest: 60 },
+                    { name: "Cable Curl", sets: 2, reps: "12–15", rest: 60 },
+                    { name: "Rope Pushdown", sets: 2, reps: "12–15", rest: 60 }
                 ],
-                note: "Keep Saturday restorative so you arrive ready for Sunday’s long run."
+                note: "Keep every set at 2–3 RIR and use controlled reps. This is a low-fatigue pump session—stop well short of failure so Sunday’s long run stays the priority."
             },
             {
                 id: "sun-v2", dow: "Sunday", title: "Long Run — Marathon Builder", type: "run",
@@ -991,7 +996,7 @@
         // --- Render ------------------------------------------------------------
         const tabsEl = document.getElementById('day-tabs');
         const dayViewEl = document.getElementById('day-view');
-        const todayId = ['sun-v2', 'mon-v3', 'tue-v2', 'wed-v3', 'thu-v2', 'fri-v3', 'sat-v3'][new Date().getDay()];
+        const todayId = ['sun-v2', 'mon-v3', 'tue-v2', 'wed-v3', 'thu-v2', 'fri-v3', 'sat-v4'][new Date().getDay()];
 
         let currentDayId = (() => {
             const saved = localStorage.getItem('view');

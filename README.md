@@ -15,12 +15,12 @@ No backend, no build step, no dependencies — just `index.html`, `manifest.json
 | Wednesday | Upper B — Hypertrophy + Arms               |
 | Thursday  | Quality Run — Threshold / Intervals        |
 | Friday    | Lower — Runner-Resilient Hypertrophy       |
-| Saturday  | Rest / Mobility                            |
+| Saturday  | Light Upper — Pump + Mobility              |
 | Sunday    | Long Run — Marathon Builder                |
 
-The program has four purposeful runs: Monday’s easy base run, Tuesday’s easy aerobic run, Thursday’s quality session, and Sunday’s progressively built long run. Monday combines the easy run with Upper A; Wednesday is Upper B; Friday is the lower-body session; and Saturday is reserved for rest or light mobility.
+The program has four purposeful runs: Monday’s easy base run, Tuesday’s easy aerobic run, Thursday’s quality session, and Sunday’s progressively built long run. Monday combines the easy run with Upper A; Wednesday is Upper B; Friday is the lower-body session; and Saturday adds a low-fatigue upper-body pump session before Sunday’s long run.
 
-The Monday mixed session shows lifting sets with weight tracking and the run as a separate completion item. Each lifting day includes RIR and progression guidance in the app.
+The Monday mixed session shows lifting sets with weight tracking and the run as a separate completion item. Saturday uses moderate-rep machine/cable work at 2–3 RIR to limit fatigue. Each lifting day includes RIR and progression guidance in the app.
 
 Each lifting day has a fixed exercise list with prescribed sets, rep ranges, and rest times. Edit the `PLAN` array near the top of the `<script>` block in `index.html` to change exercises, sets, reps, rest seconds, or the day notes.
 
@@ -142,7 +142,7 @@ The auto-reset only removes keys that start with `set:` or `open:`. The manual *
 
 ### Program updates and existing data
 
-The current program uses versioned day IDs such as `mon-v3`, `fri-v3`, and `sat-v3`. This intentionally prevents exercise-indexed weights from an older program appearing beside a different exercise after a plan update or day reassignment. Existing v2 values remain in local storage but are no longer used by the current plan; the new arrangement starts with empty checkboxes and weight fields. Enter your current working weights again for the v3 lifting days. Your old values remain on the device unless you clear browser storage manually.
+The current program uses versioned day IDs such as `mon-v3`, `fri-v3`, and `sat-v4`. This intentionally prevents exercise-indexed weights from an older program appearing beside a different exercise after a plan update or day reassignment. Existing v2/v3 values remain in local storage but are no longer used by the current arrangement where IDs changed; enter your current working weights again for the new Saturday exercises. Your old values remain on the device unless you clear browser storage manually.
 
 ## Adding tutorial videos
 
